@@ -1,4 +1,4 @@
-  <html ng-app='app'>
+  <html>
 <head>
   <meta name="description" content="John Conway's Game of Life" />
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular.min.js"></script>
