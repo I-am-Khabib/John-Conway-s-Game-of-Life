@@ -1,0 +1,35 @@
+.root{
+	-fx-background-color: white,black;
+	
+}
+.head{
+	-fx-background-color:darkblue;
+	
+	
+}
+.label{
+	-fx-font-size: 30;
+	-fx-font-family: "Comic Sans MS";
+	-fx-text-fill: "yellow";
+	
+	
+}
+.buttons{
+	-fx-background-color: teal;
+	-fx-background-radius:20px;
+	-fx-text-fill: "white";
+}
+.buttonbar{
+	-fx-background-color: darkseagreen;
+	
+}
+.border{
+	-fx-background-color:white;
+}
+
+#titleLabel{
+	-fx-font-size:40;
+	
+	
+	
+}
