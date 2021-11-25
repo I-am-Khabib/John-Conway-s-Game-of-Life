@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefHeight="650.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+
+    <!--Grid-->
+    <GridPane fx:id="gridPane" prefHeight="600.0" prefWidth="600.0" />
+    <!--Grid Info-->
+    <HBox alignment="CENTER" prefHeight="25.0" prefWidth="600.0">
+        <VBox alignment="CENTER" prefWidth="125">
+            <HBox>
+                <Label text="Generation: " />
+                <Label fx:id="generationLabelValue" text="0" />
+            </HBox>
+        </VBox>
+        <VBox alignment="CENTER" prefWidth="110">
+            <HBox>
+                <Label text="Speed: " />
+                <Label fx:id="gameSpeedLabelValue" text="V. Slow" />
+            </HBox>
+        </VBox>
+        <VBox alignment="CENTER" prefWidth="110">
+            <HBox>
+                <Label text="State: " />
+                <Label fx:id="gameStateLabelValue" text="Paused" />
+            </HBox>
+        </VBox>
+        <VBox alignment="CENTER" prefWidth="150">
+            <HBox>
+                <Label text="Rule Set: " />
+                <Label fx:id="ruleSetLabelValue" text="Standard" />
+            </HBox>
+        </VBox>
+    </HBox>
+</VBox>
