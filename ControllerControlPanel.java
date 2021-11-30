@@ -9,11 +9,12 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
-
+import java.sql.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
+import java.util.Scanner;
 
 import static main.java.com.wdhays.gol.GameSpeed.*;
 
@@ -40,11 +41,17 @@ public class ControllerControlPanel implements Initializable {
     @FXML
     private Button saveButton;
     @FXML
+    private Button saveDBButton;
+    @FXML
+    private Button DeleteDBButton;
+    @FXML
     private Button deleteButton;
     @FXML
     private Button loadButton;
     @FXML
-    private ComboBox<String> rulesCombo;
+    private Button loadDBButton;
+    @FXML
+    private Button viewDBButton;
     @FXML
     private Button randomButton;
     @FXML
@@ -73,12 +80,13 @@ public class ControllerControlPanel implements Initializable {
         NextButton.setOnAction(e->nextBtnOnAction());
         //Set up action listeners for the save and load buttons.
         saveButton.setOnAction(this::saveBtnOnAction);
+        saveDBButton.setOnAction(this::saveDBBtnOnAction);
+        DeleteDBButton.setOnAction(this::deleteDBBtnOnAction);
         deleteButton.setOnAction(this::deleteBtnOnAction);
         loadButton.setOnAction(this::loadBtnOnAction);
+        loadDBButton.setOnAction(this::loadDBBtnOnAction);
+        viewDBButton.setOnAction(this::ViewDBBtnOnAction);
         //Set up the rules combo box to be populated by the RuleSet enum.
-        rulesCombo.getItems().setAll(RuleSet.getRuleSetLabels());
-        rulesCombo.getSelectionModel().selectFirst();
-        rulesCombo.valueProperty().addListener(getRulesComboChangeListener());
         //Set up the action listeners for the random button.
         randomButton.setOnAction(e -> randomBtnOnAction());
         //Set up the patterns combo box to be populated by the Pattern enum.
@@ -94,7 +102,6 @@ public class ControllerControlPanel implements Initializable {
     }
 
 
-
     private ChangeListener<Boolean> useCellAgeColorsChangeListener() {
         return (observable, oldValue, newValue) -> {
             System.out.println("The draw colors checkbox value has changed to: " + newValue);
@@ -104,13 +111,7 @@ public class ControllerControlPanel implements Initializable {
         };
     }
 
-    private ChangeListener<String> getRulesComboChangeListener() {
-        return (observable, oldValue, newValue) -> {
-            System.out.println("The rules combo value was changed!");
-            System.out.println("The new value is " + rulesCombo.getValue());
-            gameOfLife.setRuleSet(RuleSet.fromString(rulesCombo.getValue()));
-        };
-    }
+
 
     private ChangeListener<String> getPatternsComboChangeListener() {
         //Update the pattern image view to the currently selected patterns thumbnail.
@@ -146,7 +147,7 @@ public class ControllerControlPanel implements Initializable {
             //The slider value is a double, but we are only interested in the whole numbers at ticks.
             speedSlider.setValue(newValue.intValue());
             if(newValue.intValue() != oldValue.intValue()) {
-                    speedSliderChangeAction();
+                speedSliderChangeAction();
             }
         };
     }
@@ -188,6 +189,62 @@ public class ControllerControlPanel implements Initializable {
         gameOfLife.generateRandomGrid(randomValue);
     }
 
+    private void ViewDBBtnOnAction(ActionEvent actionEvent) {
+
+        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/bilal","root","Itsme7");
+             Statement stmt = con.createStatement();) {
+            String SQL = "select* from grid";
+            ResultSet rs = stmt.executeQuery(SQL);
+
+            // Iterate through the data in the result set and display it.
+            while (rs.next()) {
+                System.out.println(rs.getString("name"));
+            }
+            stmt.close();
+            con.close();
+        }
+        // Handle any errors that may have occurred.
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+}
+
+    private void saveDBBtnOnAction(ActionEvent actionEvent)  {
+        Scanner myObj = new Scanner(System.in);
+        String FileName;
+        File mydbfile=new File("db.txt");
+        try {
+            gameOfLife.saveGameBoardToFile(mydbfile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // Enter username and press Enter
+        System.out.println("Enter FileName");
+        FileName = myObj.nextLine();
+
+        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/bilal","root","Itsme7");
+             PreparedStatement stmt = con.prepareStatement("insert into grid values(?,?)");) {
+            stmt.setString(1,FileName);
+            stmt.setString(2, gameOfLife.buildGridCSVString());
+
+            int rs = stmt.executeUpdate();
+
+            // Iterate through the data in the result set and display it.
+            if(rs==0)
+                System.out.println("Not Inserted\n");
+            else
+                System.out.println("Inserted\n");
+
+            stmt.close();
+            con.close();
+        }
+        // Handle any errors that may have occurred.
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void saveBtnOnAction(ActionEvent event) {
 
         System.out.println("Save button was pressed!");
@@ -214,6 +271,34 @@ public class ControllerControlPanel implements Initializable {
             }
         }
     }
+
+    private void deleteDBBtnOnAction(ActionEvent actionEvent) {
+        Scanner myObj = new Scanner(System.in);
+        String FileName;
+
+        // Enter username and press Enter
+        System.out.println("Enter FileName");
+        FileName = myObj.nextLine();
+        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/bilal","root","Itsme7");
+             PreparedStatement stmt = con.prepareStatement("delete from grid where name=?");) {
+            stmt.setString(1,FileName);
+            int rs = stmt.executeUpdate();
+
+            // Iterate through the data in the result set and display it.
+            if(rs==0)
+                System.out.println("Not Deleted\n");
+            else
+                System.out.println("Deleted\n");
+
+            stmt.close();
+            con.close();
+        }
+        // Handle any errors that may have occurred.
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
     private void deleteBtnOnAction(ActionEvent Event) {
         System.out.println("Delete button was pressed!");
         Button eventSource = (Button) Event.getSource();
@@ -226,6 +311,34 @@ public class ControllerControlPanel implements Initializable {
             System.out.println("Attempting load from: " + selectedFile);
             if(selectedFile.delete())
                 System.out.println("Deleted Successfully");
+        }
+    }
+
+    private void loadDBBtnOnAction(ActionEvent actionEvent) {
+        Scanner myObj = new Scanner(System.in);
+        String FileName;
+
+        // Enter username and press Enter
+        System.out.println("Enter FileName");
+        FileName = myObj.nextLine();
+        try (Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/bilal","root","Itsme7");
+             PreparedStatement stmt = con.prepareStatement("select * from grid where name=?");) {
+            stmt.setString(1,FileName);
+            ResultSet rs = stmt.executeQuery();
+
+            // Iterate through the data in the result set and display it.
+            if (rs.next()) {
+                String Grids = rs.getString("state");
+                gameOfLife.loadGameBoardFromDB(Grids);
+                System.out.println("Loaded\n");
+            }
+
+            stmt.close();
+            con.close();
+        }
+        // Handle any errors that may have occurred.
+        catch (SQLException | IOException e) {
+            e.printStackTrace();
         }
     }
     private void loadBtnOnAction(ActionEvent e) {
